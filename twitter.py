@@ -11,15 +11,21 @@ ACCESS_TOKEN = twitter.obtain_access_token()
 
 twitter = Twython(APP_KEY, access_token=ACCESS_TOKEN)
 
-def downloadTweet(hashtag):
+def downloadTweet(hashtags):
 
-    search = twitter.search(q = '#GOT')
-    tweets = search['statuses']
-    #print(tweets)
-    for tweet in tweets:
-        tweet_id, tweet_text = tweet['id_str'], tweet['text']
-        print(tweet_id, '\n', tweet_text)
+	for el in hashtags:
 
+		hashtag = "#" + el
+		print(hashtag)
+		break
+	    search = twitter.search(q = '#GOT')
+	    tweets = search['statuses']
+	    #print(tweets)
+	    for tweet in tweets:
+	        tweet_id, tweet_text = tweet['id_str'], tweet['text']
+	        print(tweet_id, '\n', tweet_text)
+
+	    break
 
 def main():
     
@@ -34,6 +40,8 @@ def main():
 		# If the moviename contains more than 2 words, we have to make an extra hashtag
 		if len(splittedMoviename) > 2:
 			hashtag.append("".join([x[0] for x in splittedMoviename]))
+
+		downloadTweet(hashtag)
 
 		print(hashtag)
 
