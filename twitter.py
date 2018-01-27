@@ -16,16 +16,12 @@ def downloadTweet(hashtags):
 	for el in hashtags:
 
 		hashtag = "#" + el
-		print(hashtag)
-		break
-	    search = twitter.search(q = '#GOT')
-	    tweets = search['statuses']
-	    #print(tweets)
-	    for tweet in tweets:
-	        tweet_id, tweet_text = tweet['id_str'], tweet['text']
-	        print(tweet_id, '\n', tweet_text)
-
-	    break
+		search = twitter.search(q = hashtag)
+		tweets = search['statuses']
+		#print(tweets)
+		for tweet in tweets:
+			tweet_id, tweet_text = tweet['id_str'], tweet['text']
+			print(tweet_id, '\n', tweet_text)
 
 def main():
     
@@ -42,9 +38,6 @@ def main():
 			hashtag.append("".join([x[0] for x in splittedMoviename]))
 
 		downloadTweet(hashtag)
-
-		print(hashtag)
-
 
 if __name__ == "__main__":
     main()
