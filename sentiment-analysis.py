@@ -62,10 +62,9 @@ def removeStopWords(tokens):
 
     return [w for w in tokens if w not in stop_words]
 
-def getTrainData():
+def getTrainData(categories):
 
     trainData = list()
-    categories = ["neg","pos"]
 
     for category in categories:
 
@@ -126,11 +125,39 @@ def high_information(feats, categories):
 
     return high_info_words
 
+def calculate_f(precisions, recalls):
+	f_measures = {}
+
+	for category in precisions:
+		f_measures[category] = 2 * precisions[category] * recalls[category] / (precisions[category] + recalls[category])
+
+	return f_measures
+
+def evaluation(classifier, testData, categories):
+	print ("\n##### Evaluation...")
+	print("  Accuracy: %f" % nltk.classify.accuracy(classifier, testData))
+	precisions, recalls = precision_recall(classifier, testData)
+	f_measures = calculate_f(precisions, recalls)  
+
+	print(" |-----------|-----------|-----------|-----------|")
+	print(" |%-11s|%-11s|%-11s|%-11s|" % ("category","precision","recall","F-measure"))
+	print(" |-----------|-----------|-----------|-----------|")
+	for category in categories:
+		if precisions[category] is None:
+			print(" |%-11s|%-11s|%-11s|%-11s|" % (category, "NA", "NA", "NA"))
+		elif (precisions[category] == 0) and (recalls[category] == 0):
+			print(" |%-11s|%-11f|%-11f|%-11s|" % (category, precisions[category], recalls[category], "NA"))
+		else:
+			print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
+	print(" |-----------|-----------|-----------|-----------|")
+
 def main():
 
-    trainData = getTrainData()
+    categories = ["neg","pos"]
 
-    high_info_words = high_information(trainData, ["pos","neg"])
+    trainData = getTrainData(categories)
+
+    high_info_words = high_information(trainData, categories)
 
     splittedDataSet = splitDataSet(trainData)
 
@@ -139,6 +166,8 @@ def main():
 
     trainData = removeFileName(trainData)
     classifier = train(trainData)
+
+    #evaluation(classifier, testData, categories)
 
     for sentence, label, filename in testData:
         
