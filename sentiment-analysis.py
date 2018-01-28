@@ -16,15 +16,39 @@ import sys
 def getFilenamesInFolder(folder):
     return [f for f in listdir(folder) if isfile(join(folder, f))]
 
-def splitDataSet(data, folds=10):
+def removeFileName(trainData):
+
+    modifiedData = list()
+    
+    for el in trainData:
+        modifiedData.append(el[:2])
+
+    return modifiedData
+
+def splitDataSet(data, folds=2):
 
     shuffle(data) # randomise dataset before splitting into train and test
 
+    splittedDataSet = []
+    countReviews = len(data)
+    trainAmount = int(countReviews * 0.9)
+
+    # Append train data
+    splittedDataSet.append(data[:trainAmount])
+
+    # Append test data
+    splittedDataSet.append(data[trainAmount:])
+    print("\n Split datasets to trainset and testset..")
+
+    return splittedDataSet
+
     # Calculate how big 1/n part of the list has to be
-    chunk = round(len(data) / folds)
+    #chunk = round(len(data) / folds)
     
     # divide feats into n cross fold sections
-    splittedData = []
+    
+
+    """
     for n in range(folds):
 
         length = n * chunk
@@ -36,12 +60,12 @@ def splitDataSet(data, folds=10):
         trainData = data[:length] + data[(length + chunk + 1):]
 
         splittedData.append((trainData, testData))
+    """
     
-    print("\n Splitting datasets..")
     return splittedData
 
 def train(trainData):
-    print(trainData)
+
     classifier = nltk.classify.NaiveBayesClassifier.train(trainData, estimator=LaplaceProbDist)
     return classifier
 
@@ -54,13 +78,13 @@ def removeStopWords(tokens):
 
     # Get English stopwords
     stop_words = set(stopwords.words("english"))
-    stop_words.update(['.', ',', '"', "'", ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '</br>', 'br', '!',"''"])
+    stop_words.update(['.', ',', '"', "'", ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '</br>', 'br', '!',"''", '/', '``'])
 
     return [w for w in tokens if w not in stop_words]
 
 def getTrainData():
 
-    trainData = list ()
+    trainData = list()
     categories = ["neg","pos"]
 
     for category in categories:
@@ -78,7 +102,7 @@ def getTrainData():
             filtered_sentence = removeStopWords(tokens)
 
             bag = bag_of_words(filtered_sentence)
-            trainData.append((bag, category))
+            trainData.append((bag, category, f))
 
             # Break after 50 files, so we can test better 
             num_files+=1
@@ -94,11 +118,16 @@ def main():
     trainData = getTrainData()
     splittedDataSet = splitDataSet(trainData)
 
-    for trainData, testData in splittedDataSet:
-        classifier = train(trainData)
+    trainData = splittedDataSet[0]
+    testData = splittedDataSet[1]
 
-        for sentence, label in testData:
-            print (classifier.classify(sentence))
+    trainData = removeFileName(trainData)
+    classifier = train(trainData)
+
+    for sentence, label, filename in testData:
+        
+        print(filename, classifier.classify(sentence))
+
 
 if __name__ == "__main__":
 
