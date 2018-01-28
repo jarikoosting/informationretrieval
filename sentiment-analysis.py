@@ -113,9 +113,45 @@ def getTrainData():
 
     return trainData
 
+def high_information(feats, categories):
+
+    " Code by Antonio "
+
+    print("\n##### Obtaining high information words...")
+
+    labelled_words = [(category, []) for category in categories]
+
+    # 1. convert the formatting of our features to that required by high_information_words
+    from collections import defaultdict
+    words = defaultdict(list)
+    all_words = list()
+    for category in categories:
+        words[category] = list()
+
+    for feat in feats:
+        category = feat[1]
+        bag = feat[0]
+        for w in bag.keys():
+            words[category].append(w)
+            all_words.append(w)
+
+    labelled_words = [(category, words[category]) for category in categories]
+
+    # 2. calculate high information words
+    high_info_words = set(high_information_words(labelled_words))
+
+    print("  Number of words in the data: %i" % len(all_words))
+    print("  Number of distinct words in the data: %i" % len(set(all_words)))
+    print("  Number of distinct 'high-information' words in the data: %i" % len(high_info_words))
+
+    return high_info_words
+
 def main():
 
     trainData = getTrainData()
+
+    high_info_words = high_information(trainData, ["pos","neg"])
+
     splittedDataSet = splitDataSet(trainData)
 
     trainData = splittedDataSet[0]
