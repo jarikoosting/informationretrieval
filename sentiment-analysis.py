@@ -41,26 +41,6 @@ def splitDataSet(data, folds=2):
     print("\n Split datasets to trainset and testset..")
 
     return splittedDataSet
-
-    # Calculate how big 1/n part of the list has to be
-    #chunk = round(len(data) / folds)
-    
-    # divide feats into n cross fold sections
-    
-
-    """
-    for n in range(folds):
-
-        length = n * chunk
-
-        # Get the test feats
-        testData = data[length:length+chunk+1]
-
-        # Get all the feats without the test feat, these are the train feats
-        trainData = data[:length] + data[(length + chunk + 1):]
-
-        splittedData.append((trainData, testData))
-    """
     
     return splittedData
 
