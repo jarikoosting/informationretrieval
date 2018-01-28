@@ -6,6 +6,7 @@ from nltk.tokenize import word_tokenize
 from nltk.probability import LaplaceProbDist
 from nltk.corpus import stopwords
 from featx import bag_of_words, high_information_words
+from classification import precision_recall
 
 from random import shuffle
 from os import listdir # to read files
@@ -81,11 +82,13 @@ def getTrainData(categories):
             filtered_sentence = removeStopWords(tokens)
 
             bag = bag_of_words(filtered_sentence)
-            trainData.append((bag, category, f))
+
+            trainData.append((bag, category))
+            #trainData.append((bag, category, f))
 
             # Break after 50 files, so we can test better 
             num_files+=1
-            if num_files>=50: 
+            if num_files>=400: 
                break
 
     print("  Total, %i files read" % (len(trainData)))
@@ -150,7 +153,9 @@ def evaluation(classifier, testData, categories):
 		else:
 			print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
 	print(" |-----------|-----------|-----------|-----------|")
-
+	
+    
+    
 def main():
 
     categories = ["neg","pos"]
@@ -167,11 +172,11 @@ def main():
     trainData = removeFileName(trainData)
     classifier = train(trainData)
 
-    #evaluation(classifier, testData, categories)
+    evaluation(classifier, testData, categories)
 
-    for sentence, label, filename in testData:
+    #for sentence, label, filename in testData:
         
-        print(filename, classifier.classify(sentence))
+    #    print(filename, classifier.classify(sentence))
 
 
 if __name__ == "__main__":
