@@ -106,8 +106,8 @@ def getTrainData():
 
             # Break after 50 files, so we can test better 
             num_files+=1
-            #if num_files>=50: 
-            #   break
+            if num_files>=50: 
+               break
 
     print("  Total, %i files read" % (len(trainData)))
 
