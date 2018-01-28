@@ -7,6 +7,7 @@ from nltk.probability import LaplaceProbDist
 from nltk.corpus import stopwords
 from featx import bag_of_words, high_information_words
 from classification import precision_recall
+from nltk.stem.snowball import SnowballStemmer
 
 from random import shuffle
 from os import listdir # to read files
@@ -53,15 +54,20 @@ def train(trainData):
 def removePunctiation(tokens):
 
     no_punctuation = [''.join(c for c in s if c not in string.punctuation) for s in tokens]
-    return [s for s in no_punctuation if s]
+    return [s.lower() for s in no_punctuation if s]
 
-def removeStopWords(tokens):
+def removeStopWords(no_punctuation):
 
     # Get English stopwords
     stop_words = set(stopwords.words("english"))
     stop_words.update(['.', ',', '"', "'", ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '</br>', 'br', '!',"''", '/', '``'])
 
-    return [w for w in tokens if w not in stop_words]
+    return [w for w in no_punctuation if w not in stop_words]
+
+def wordStemmer(filtered_sentence):
+    
+    stemmer = SnowballStemmer("english")
+    return [stemmer.stem(w) for w in filtered_sentence]
 
 def getTrainData(categories):
 
@@ -77,9 +83,13 @@ def getTrainData(categories):
             tokens = word_tokenize(data)
 
             no_punctuation = removePunctiation(tokens)
+            
+            # Don't use stop words            
+            filtered_sentence = removeStopWords(no_punctuation)
 
-            # Don't use stop words 
-            filtered_sentence = removeStopWords(tokens)
+            #print(filtered_sentence)
+            cleanWords = wordStemmer(filtered_sentence)
+            #print(cleanWords)
 
             bag = bag_of_words(filtered_sentence)
 
@@ -87,9 +97,9 @@ def getTrainData(categories):
             #trainData.append((bag, category, f))
 
             # Break after 50 files, so we can test better 
-            num_files+=1
-            if num_files>=400: 
-               break
+            #num_files+=1
+            #if num_files>=1000: 
+            #   break
 
     print("  Total, %i files read" % (len(trainData)))
 
@@ -140,18 +150,19 @@ def evaluation(classifier, testData, categories):
 	print ("\n##### Evaluation...")
 	print("  Accuracy: %f" % nltk.classify.accuracy(classifier, testData))
 	precisions, recalls = precision_recall(classifier, testData)
+	#print(precisions, recalls)
 	f_measures = calculate_f(precisions, recalls)  
 
 	print(" |-----------|-----------|-----------|-----------|")
 	print(" |%-11s|%-11s|%-11s|%-11s|" % ("category","precision","recall","F-measure"))
 	print(" |-----------|-----------|-----------|-----------|")
 	for category in categories:
-		if precisions[category] is None:
-			print(" |%-11s|%-11s|%-11s|%-11s|" % (category, "NA", "NA", "NA"))
-		elif (precisions[category] == 0) and (recalls[category] == 0):
-			print(" |%-11s|%-11f|%-11f|%-11s|" % (category, precisions[category], recalls[category], "NA"))
-		else:
-			print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
+            if precisions[category] is None:
+                print(" |%-11s|%-11s|%-11s|%-11s|" % (category, "NA", "NA", "NA"))
+            elif (precisions[category] == 0) and (recalls[category] == 0):
+                print(" |%-11s|%-11f|%-11f|%-11s|" % (category, precisions[category], recalls[category], "NA"))
+            else:
+                print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
 	print(" |-----------|-----------|-----------|-----------|")
 	
     
@@ -173,6 +184,8 @@ def main():
     classifier = train(trainData)
 
     evaluation(classifier, testData, categories)
+
+    #print(testData[0])
 
     #for sentence, label, filename in testData:
         
