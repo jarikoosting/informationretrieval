@@ -97,9 +97,9 @@ def getTrainData(categories):
             #trainData.append((bag, category, f))
 
             # Break after 50 files, so we can test better 
-            #num_files+=1
-            #if num_files>=1000: 
-            #   break
+            num_files+=1
+            if num_files>=5000: 
+               break
 
     print("  Total, %i files read" % (len(trainData)))
 
@@ -164,6 +164,7 @@ def evaluation(classifier, testData, categories):
             else:
                 print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
 	print(" |-----------|-----------|-----------|-----------|")
+	return nltk.classify.accuracy(classifier, testData)
 	
     
     
@@ -174,17 +175,35 @@ def main():
     trainData = getTrainData(categories)
 
     high_info_words = high_information(trainData, categories)
-
+    """
     splittedDataSet = splitDataSet(trainData)
 
     trainData = splittedDataSet[0]
     testData = splittedDataSet[1]
 
     trainData = removeFileName(trainData)
+    
     classifier = train(trainData)
-
     evaluation(classifier, testData, categories)
+    """
+    accuracy_scores = []
+    from functools import reduce
+    for i in range(10):
+        splittedDataSet = splitDataSet(trainData)
 
+        trainData = splittedDataSet[0]
+        testData = splittedDataSet[1]
+
+        trainData = removeFileName(trainData)
+        
+        classifier = train(trainData)
+        accuracy_scores.append(evaluation(classifier, testData, categories))
+
+    print(accuracy_scores)
+    average_accuracy = reduce(lambda x, y: x + y, accuracy_scores) / len(accuracy_scores)
+    print(average_accuracy)
+
+    
     #print(testData[0])
 
     #for sentence, label, filename in testData:
