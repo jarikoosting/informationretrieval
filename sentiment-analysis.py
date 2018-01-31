@@ -17,25 +17,20 @@ from random import shuffle
 from os import listdir
 from os.path import isfile, join 
 import sys
-
-
-# Return all the filenames in a folder
+ 
 def getFilenamesInFolder(folder):
-    return [f for f in listdir(folder) if isfile(join(folder, f))]
-
-def removeFileName(trainData):
-
-    modifiedData = list()
     
-    for el in trainData:
-        modifiedData.append(el[:2])
-
-    return modifiedData
+    " Return all the filenames in a folder "
+    
+    return [f for f in listdir(folder) if isfile(join(folder, f))]
 
 
 def splitDataSet(data, folds=2):
 
-    shuffle(data) # Randomise dataset before splitting into train and test
+    " Split our data to a test and train set "
+
+    # Randomise dataset before splitting into train and test
+    shuffle(data) 
 
     splittedDataSet = []
     countReviews = len(data)
@@ -49,11 +44,11 @@ def splitDataSet(data, folds=2):
     print("\n Split datasets to trainset and testset..")
 
     return splittedDataSet
-    
-    return splittedData
 
 
 def train(trainData):
+
+    " Train classifier with our train data "
 
     classifier = nltk.classify.NaiveBayesClassifier.train(trainData, estimator=LaplaceProbDist)
     return classifier
@@ -61,26 +56,36 @@ def train(trainData):
 
 def removePunctiation(tokens):
 
+    " Remove the punctuation of a review "
+
     no_punctuation = [''.join(c for c in s if c not in string.punctuation) for s in tokens]
     return [s.lower() for s in no_punctuation if s]
 
 
 def removeStopWords(no_punctuation):
 
+    " Remove stop words from the review "
+
     # Get English stopwords
     stop_words = set(stopwords.words("english"))
+
+    # Update our list with stop words
     stop_words.update(['.', ',', '"', "'", ':', ';', '(', ')', '[', ']', '{', '}', '<', '>', '</br>', 'br', '!',"''", '/', '``'])
 
     return [w for w in no_punctuation if w not in stop_words]
 
 
 def wordStemmer(filtered_sentence):
+
+    " Use a word stemmer on the review "
     
     stemmer = SnowballStemmer("english")
     return [stemmer.stem(w) for w in filtered_sentence]
 
 
 def getTrainData(categories):
+
+    " Add all reviews to a list and process them "
 
     trainData = list()
 
@@ -108,11 +113,6 @@ def getTrainData(categories):
             # Add the category to the bag-of-words
             trainData.append((bag, category))
 
-            # Break after 50 files, so we can test better 
-            #num_files+=1
-            #if num_files>=1: 
-            #   break
-
     print("  Total, %i files read" % (len(trainData)))
 
     return trainData
@@ -120,7 +120,7 @@ def getTrainData(categories):
 
 def high_information(feats, categories):
 
-    " Code by Antonio "
+    " Code by Antonio, get high information words "
 
     print("\n##### Obtaining high information words...")
 
@@ -153,32 +153,39 @@ def high_information(feats, categories):
 
 
 def calculate_f(precisions, recalls):
-	f_measures = {}
 
-	for category in precisions:
-		f_measures[category] = 2 * precisions[category] * recalls[category] / (precisions[category] + recalls[category])
+    " Calculate f score, precision and recall "
 
-	return f_measures
+    f_measures = {}
+
+    for category in precisions:
+        f_measures[category] = 2 * precisions[category] * recalls[category] / (precisions[category] + recalls[category])
+
+    return f_measures
 
 
 def evaluation(classifier, testData, categories):
-	print ("\n##### Evaluation...")
-	print("  Accuracy: %f" % nltk.classify.accuracy(classifier, testData))
-	precisions, recalls = precision_recall(classifier, testData)
-	f_measures = calculate_f(precisions, recalls)  
 
-	print(" |-----------|-----------|-----------|-----------|")
-	print(" |%-11s|%-11s|%-11s|%-11s|" % ("category","precision","recall","F-measure"))
-	print(" |-----------|-----------|-----------|-----------|")
-	for category in categories:
-            if precisions[category] is None:
-                print(" |%-11s|%-11s|%-11s|%-11s|" % (category, "NA", "NA", "NA"))
-            elif (precisions[category] == 0) and (recalls[category] == 0):
-                print(" |%-11s|%-11f|%-11f|%-11s|" % (category, precisions[category], recalls[category], "NA"))
-            else:
-                print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
-	print(" |-----------|-----------|-----------|-----------|")
-	return nltk.classify.accuracy(classifier, testData)
+    " Evaluate the sentiment analyser "
+
+    print ("\n##### Evaluation...")
+    print("  Accuracy: %f" % nltk.classify.accuracy(classifier, testData))
+    precisions, recalls = precision_recall(classifier, testData)
+    f_measures = calculate_f(precisions, recalls)  
+
+    print(" |-----------|-----------|-----------|-----------|")
+    print(" |%-11s|%-11s|%-11s|%-11s|" % ("category","precision","recall","F-measure"))
+    print(" |-----------|-----------|-----------|-----------|")
+    for category in categories:
+        if precisions[category] is None:
+            print(" |%-11s|%-11s|%-11s|%-11s|" % (category, "NA", "NA", "NA"))
+        elif (precisions[category] == 0) and (recalls[category] == 0):
+            print(" |%-11s|%-11f|%-11f|%-11s|" % (category, precisions[category], recalls[category], "NA"))
+        else:
+            print(" |%-11s|%-11f|%-11f|%-11f|" % (category, precisions[category], recalls[category], f_measures[category]))
+
+        print(" |-----------|-----------|-----------|-----------|")
+    return nltk.classify.accuracy(classifier, testData)
 
     
 def main():
@@ -193,34 +200,9 @@ def main():
 
     trainData = splittedDataSet[0]
     testData = splittedDataSet[1]
-
-    trainData = removeFileName(trainData)
     
     classifier = train(trainData)
     evaluation(classifier, testData, categories)
-    
-    """
-    accuracy_scores = []
-    from functools import reduce
-    for i in range(10):
-        splittedDataSet = splitDataSet(trainData)
-
-        trainData = splittedDataSet[0]
-        testData = splittedDataSet[1]
-
-        trainData = removeFileName(trainData)
-        
-        classifier = train(trainData)
-        accuracy_scores.append(evaluation(classifier, testData, categories))
-
-    print(accuracy_scores)
-    average_accuracy = reduce(lambda x, y: x + y, accuracy_scores) / len(accuracy_scores)
-    print(average_accuracy)
-    """
-    
-    # Debug:
-    #for sentence, label, filename in testData:  
-    #    print(filename, classifier.classify(sentence))
 
 
 if __name__ == "__main__":
